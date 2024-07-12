@@ -9,8 +9,13 @@ import { Grid } from './grid';
 import style from './style.module.css';
 import Modal from 'react-modal';
 import { ConnectionHandler } from '../../utils/connection-handler';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import { Spacing } from '../base/Spacing';
+import { MovesList } from './moves-list';
+import { flex1 } from '../../styles';
+import { Button, Intent } from '../base/Button';
+import { FlexColumn, FlexRow } from '../base/Flex';
 
 export const RemoteGame = observer(
   ({
@@ -28,6 +33,8 @@ export const RemoteGame = observer(
 
     const [game, setGame] = useState<Gomoku | null>(null);
     const [player, setPlayer] = useState<Player | null>(null);
+
+    const [takeBackRequestModalOpen, setTakeBackRequestModalOpen] = useState(false);
 
     useEffect(() => {
       if (host) {
@@ -91,9 +98,41 @@ export const RemoteGame = observer(
       return destroy;
     }, [game]);
 
-    if (!game) return <div>Loading...</div>;
+    useEffect(() => {
+      if (!game) return;
+      const destroy = connectionHandler.addListener((data, didHandle) => {
+        if (data.type === PeerDataTransferType.REQUEST_TAKE_BACK) {
+          setTakeBackRequestModalOpen(true);
+          didHandle();
+        }
+      });
 
-    let isGameOver = game.isGameOver;
+      return destroy;
+    }, [game]);
+
+    const takeBackRequestResponse = useCallback(
+      (response: boolean) => {
+        if (!game) return;
+
+        const responsePayload: PeerDataTransfer = {
+          type: PeerDataTransferType.TAKE_BACK_REQUEST_RESPONSE,
+          payload: {
+            accept: response,
+          },
+        };
+
+        connectionHandler.connection.send(responsePayload);
+
+        setTakeBackRequestModalOpen(false);
+
+        if (response) {
+          game.undoLastMove();
+        }
+      },
+      [game, connectionHandler],
+    );
+
+    if (!game) return <div>Loading...</div>;
 
     return (
       <div className={style.root}>
@@ -110,6 +149,36 @@ export const RemoteGame = observer(
             }
           }}
         />
+        <Spacing />
+        <MovesList
+          css={flex1}
+          game={game}
+          remote={true}
+          onTakeBack={async () => {
+            const requestTakeBackData: PeerDataTransfer = {
+              type: PeerDataTransferType.REQUEST_TAKE_BACK,
+              payload: {
+                moves: 1,
+              },
+            };
+
+            connectionHandler.connection.send(requestTakeBackData);
+
+            const requestResponse = await new Promise<boolean>((resolve) => {
+              const destroy = connectionHandler.addListener((data, didHandle) => {
+                if (data.type === PeerDataTransferType.TAKE_BACK_REQUEST_RESPONSE) {
+                  resolve(data.payload.accept);
+                  didHandle();
+                  destroy();
+                }
+              });
+            });
+
+            if (requestResponse) {
+              game.undoLastMove();
+            }
+          }}
+        />
         <Modal
           ariaHideApp={false}
           style={{
@@ -122,8 +191,8 @@ export const RemoteGame = observer(
               transform: 'translate(-50%, -50%)',
             },
           }}
-          onRequestClose={() => (isGameOver = false)}
-          isOpen={isGameOver}
+          onRequestClose={() => (game.isGameOver = false)}
+          isOpen={game.isGameOver}
         >
           {game.winner ? (
             game.winner === player ? (
@@ -149,6 +218,37 @@ export const RemoteGame = observer(
           >
             Play again
           </div>
+        </Modal>
+        <Modal
+          ariaHideApp={false}
+          style={{
+            content: {
+              top: '50%',
+              left: '50%',
+              right: 'auto',
+              bottom: 'auto',
+              marginRight: '-50%',
+              transform: 'translate(-50%, -50%)',
+            },
+          }}
+          isOpen={takeBackRequestModalOpen}
+          onRequestClose={() => {
+            takeBackRequestResponse(false);
+          }}
+        >
+          <FlexColumn alignItems="center">
+            <p>Opponent requested a take back, do you accept?</p>
+            <Spacing />
+            <FlexRow gap={5}>
+              <Button onClick={() => takeBackRequestResponse(true)}>Yes</Button>
+              <Button
+                intent={Intent.Danger}
+                onClick={() => takeBackRequestResponse(false)}
+              >
+                No
+              </Button>
+            </FlexRow>
+          </FlexColumn>
         </Modal>
       </div>
     );

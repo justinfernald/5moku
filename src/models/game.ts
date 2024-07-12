@@ -51,6 +51,8 @@ export enum PeerDataTransferType {
   SETUP,
   MOVE,
   RESET,
+  REQUEST_TAKE_BACK,
+  TAKE_BACK_REQUEST_RESPONSE,
 }
 
 export const PeerDataTransferTypes = [
@@ -58,6 +60,8 @@ export const PeerDataTransferTypes = [
   PeerDataTransferType.SETUP,
   PeerDataTransferType.MOVE,
   PeerDataTransferType.RESET,
+  PeerDataTransferType.REQUEST_TAKE_BACK,
+  PeerDataTransferType.TAKE_BACK_REQUEST_RESPONSE,
 ];
 
 export type PeerDataTransfer =
@@ -72,6 +76,19 @@ export type PeerDataTransfer =
   | {
       type: PeerDataTransferType.MOVE;
       payload: Location;
+    }
+  | {
+      type: PeerDataTransferType.REQUEST_TAKE_BACK;
+      payload: {
+        /** Not implemented yet */
+        moves: number;
+      };
+    }
+  | {
+      type: PeerDataTransferType.TAKE_BACK_REQUEST_RESPONSE;
+      payload: {
+        accept: boolean;
+      };
     }
   | {
       type: PeerDataTransferType.RESET;

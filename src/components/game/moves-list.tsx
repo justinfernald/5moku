@@ -15,8 +15,6 @@ export interface MovesListProps {
 export const MovesList = observer((props: MovesListProps) => {
   const { className, game, remote, onTakeBack: onTakeback } = props;
 
-  // if (game.moves.length === 0) return null;
-
   return (
     <FlexColumn
       className={className}
