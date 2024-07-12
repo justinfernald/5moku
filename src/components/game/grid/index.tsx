@@ -14,15 +14,22 @@ export const Grid = observer(
     <div className={style.root}>
       {game.board.map((row, y) => (
         <div key={y} className={style.row}>
-          {row.map((cell, x) => (
-            <Cell
-              key={x}
-              game={game}
-              location={{ col: x, row: y }}
-              cellState={cell}
-              onClick={onCellClick}
-            />
-          ))}
+          {row.map((cell, x) => {
+            const lastMove = game.moves.at(-1);
+
+            const isLastMove = lastMove?.col === x && lastMove?.row === y;
+
+            return (
+              <Cell
+                highlight={isLastMove}
+                key={x}
+                game={game}
+                location={{ col: x, row: y }}
+                cellState={cell}
+                onClick={onCellClick}
+              />
+            );
+          })}
         </div>
       ))}
     </div>
@@ -35,13 +42,18 @@ export const Cell = observer(
     location,
     cellState,
     onClick,
+    highlight,
   }: {
     game: Gomoku;
     location: Location;
     cellState: CellState;
     onClick?: (location: Location) => void;
+    highlight?: boolean;
   }) => (
     <div
+      css={{
+        backgroundColor: highlight ? 'rgba(64, 64, 255, 0.3)' : undefined,
+      }}
       className={c(style.cell, game.isWinningCell(location) ? style.winning : undefined)}
       onClick={() => onClick?.(location)}
     >
