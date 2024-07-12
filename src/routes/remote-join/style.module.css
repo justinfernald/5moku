@@ -1,0 +1,27 @@
+.page {
+  padding: 56px 20px;
+  flex: 1;
+  width: 100%;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.button {
+  cursor: pointer;
+  padding: 5px;
+  border: 1px solid #000;
+  margin: 5px;
+  border-radius: 5px;
+  color: white;
+  background-color: #000;
+  text-align: center;
+  transition: 0.4s ease-in-out;
+}
+
+.button:hover {
+  color: #000;
+  background-color: white;
+}

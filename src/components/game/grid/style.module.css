@@ -1,0 +1,88 @@
+.root {
+    position: relative;
+    border: 0.5px solid rgba(0, 0, 0, 0.5);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    width: min(500px, calc(95vmin - 10px));
+    height: min(500px, calc(95vmin - 10px));
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell {
+    flex: 1;
+    height: 100%;
+    border: 0.5px solid rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.4s ease-in-out;
+}
+
+.cell.winning {
+    background-color: rgba(128, 255, 128, 0.5);
+}
+
+.cell:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.cell.winning:hover {
+    background-color: rgba(90, 190, 90, 0.5);
+}
+
+/* @keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+} */
+
+.x {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* animation-name: fade-in; */
+    animation-duration: 0.25s;
+}
+
+.x::before,
+.x::after {
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 4px;
+    background-color: #44f;
+    border-radius: 2px;
+}
+
+.x::before {
+    transform: rotate(45deg);
+}
+
+.x::after {
+    transform: rotate(-45deg);
+}
+
+.o {
+    height: 85%;
+    width: 85%;
+    border-radius: 50%;
+    border: 4px solid #f44;
+    /* animation-name: fade-in; */
+    animation-duration: 0.25s;
+}

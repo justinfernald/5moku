@@ -1,22 +1,18 @@
+import { useEffect } from 'react';
 import './App.css';
 
-import { Card } from './components/base';
-import TodoList from './components/todo/TodoList';
-import TodoListModel from './models/TodoListModel';
-import { absolute, flexCenter, fullSize, padding } from './styles';
+import { Header } from './components/header';
+import { Home } from './routes/home';
+import { RemoteJoin } from './routes/remote-join';
 
-const todoListStore = new TodoListModel();
+export const App = () => {
+  const postUrl = window.location.href.split(window.location.origin)[1];
+  const id = postUrl.split('?g=')[1];
 
-function App() {
   return (
-    <div css={[absolute(), fullSize, flexCenter]}>
-      <Card
-        css={[{ width: 'min(90%, 400px)', height: 'min(90%, 400px)' }, padding('xl')]}
-      >
-        <TodoList store={todoListStore} />
-      </Card>
+    <div id="app">
+      <Header />
+      {id ? <RemoteJoin id={id} /> : <Home />}
     </div>
   );
-}
-
-export default App;
+};

@@ -1,0 +1,43 @@
+.header {
+    width: 100%;
+    height: 56px;
+    padding: 0;
+    background: #673ab7;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+}
+
+.header h1 {
+    margin: 0;
+    padding: 0 15px;
+    font-size: 24px;
+    line-height: 56px;
+    font-weight: 400;
+    color: #fff;
+}
+
+.header div {
+    color: white;
+    font-size: 20px;
+    background-color: #fff1;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    top: 50%;
+    right: 5px;
+    transform: translateY(-50%);
+    transition: 0.4s ease-in-out;
+    cursor: pointer;
+    user-select: none;
+}
+
+.header div:hover {
+    background-color: #fff3;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
