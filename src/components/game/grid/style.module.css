@@ -1,3 +1,42 @@
+@keyframes x-rotate-left {
+    from {
+        transform: rotate(0deg);
+        opacity: 0%;
+    }
+
+    to {
+        transform: rotate(-45deg);
+        opacity: 100%;
+    }
+}
+
+@keyframes x-rotate-right {
+    from {
+        transform: rotate(0deg);
+        opacity: 0%;
+
+    }
+
+    to {
+        transform: rotate(45deg);
+        opacity: 100%;
+    }
+}
+
+
+@keyframes o-contract {
+    from {
+        transform: scale(2);
+        opacity: 0%;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 100%;
+    }
+}
+
+
 .root {
     position: relative;
     border: 0.5px solid rgba(0, 0, 0, 0.5);
@@ -40,15 +79,6 @@
     background-color: rgba(90, 190, 90, 0.5);
 }
 
-/* @keyframes fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-} */
-
 .x {
     position: relative;
     height: 100%;
@@ -72,10 +102,12 @@
 
 .x::before {
     transform: rotate(45deg);
+    animation: 0.7s ease-out alternate x-rotate-left;
 }
 
 .x::after {
     transform: rotate(-45deg);
+    animation: 0.7s ease-out alternate x-rotate-right;
 }
 
 .o {
@@ -83,6 +115,5 @@
     width: 85%;
     border-radius: 50%;
     border: 4px solid #f44;
-    /* animation-name: fade-in; */
-    animation-duration: 0.25s;
+    animation: 0.7s ease-out forwards o-contract;
 }
