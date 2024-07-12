@@ -83,6 +83,8 @@ export function isPeerDataTransfer(data: any): data is PeerDataTransfer {
 }
 
 export class Gomoku {
+  moves: Cell[] = [];
+
   board: CellState[][];
   turn: Player;
 
@@ -140,6 +142,7 @@ export class Gomoku {
     if (this.isGameOver || !this.isEmpty(row, col)) return false;
 
     this.setCell(row, col, playerToCellState(this.getTurn()));
+    this.moves.push({ row, col, value: playerToCellState(this.getTurn()) });
     this.winLocations = this.checkWin(row, col, this.getTurn());
     if (this.winLocations !== null) {
       this.winner = this.getTurn();
@@ -150,6 +153,17 @@ export class Gomoku {
     this.changeTurn();
 
     return true;
+  }
+
+  undoLastMove() {
+    const lastMove = this.moves.pop();
+    if (!lastMove) return;
+
+    this.setCell(lastMove.row, lastMove.col, CellState.EMPTY);
+    this.turn = lastMove.value === CellState.X ? Player.X : Player.O;
+    this.winLocations = null;
+    this.isGameOver = false;
+    this.winner = null;
   }
 
   getValidMoves(): Location[] {
@@ -377,6 +391,7 @@ export class Gomoku {
     this.turn = Player.X;
 
     this.board = [];
+    this.moves = [];
     this.isGameOver = false;
     this.winLocations = null;
     this.winner = null;

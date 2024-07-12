@@ -4,6 +4,9 @@ import style from './style.module.css';
 import Modal from 'react-modal';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
+import { MovesList } from './moves-list';
+import { Spacing } from '../base/Spacing';
+import { absolute, flex1 } from '../../styles';
 
 export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) => {
   useEffect(() => {
@@ -15,11 +18,13 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
   let isGameOver = game.isGameOver;
 
   return (
-    <div className={style.root}>
+    <div css={[absolute(20, 20, 20, 20)]} className={style.root}>
       <Grid
         game={game}
         onCellClick={(location) => game.placeCell(location.row, location.col)}
       />
+      <Spacing />
+      <MovesList css={flex1} game={game} remote={false} onTakeBack={game.undoLastMove} />
       <Modal
         ariaHideApp={false}
         style={{
