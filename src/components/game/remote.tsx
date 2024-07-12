@@ -71,7 +71,7 @@ export const RemoteGame = observer(
 
         return destroy;
       }
-    }, []);
+    }, [connectionHandler]);
 
     useEffect(() => {
       if (!game) return;
