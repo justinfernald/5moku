@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react';
 import { MovesList } from './moves-list';
 import { Spacing } from '../base/Spacing';
 import { absolute, flex1 } from '../../styles';
+import { BotModel } from '../../models/BotModel';
+import { reaction, toJS } from 'mobx';
 
 export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) => {
   useEffect(() => {
@@ -14,6 +16,21 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
   }, []);
 
   const [game] = useState(() => new Gomoku({ width: boardSize, height: boardSize }));
+  const [botModel] = useState(() => new BotModel(game));
+
+  console.log('ahhh');
+
+  useEffect(() => {
+    const destroy = reaction(
+      () => toJS(game.board),
+      () => {
+        console.log('board changed');
+        console.log(botModel.getBestMove());
+      },
+    );
+
+    return destroy;
+  }, [botModel, game]);
 
   let isGameOver = game.isGameOver;
 
