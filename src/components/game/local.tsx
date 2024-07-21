@@ -25,7 +25,11 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
       () => toJS(game.board),
       () => {
         console.log('board changed');
-        console.log(botModel.getBestMove());
+        setTimeout(() => {
+          console.time('bot move');
+          console.log(botModel.getBestMove());
+          console.timeEnd('bot move');
+        }, 100);
       },
     );
 
@@ -36,8 +40,10 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
 
   return (
     <div css={[absolute(20, 20, 20, 20)]} className={style.root}>
+      <button onClick={botModel.evalBoard}>Eval</button>
       <Grid
         game={game}
+        botModel={botModel}
         onCellClick={(location) => game.placeCell(location.row, location.col)}
       />
       <Spacing />

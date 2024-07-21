@@ -1,88 +1,61 @@
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
-
-// ! INITIAL EXAMPLE - START
-// mod utils;
-// #[wasm_bindgen]
-// extern "C" {
-//     fn alert(s: &str);
-// }
-
-// #[wasm_bindgen]
-// pub fn greet() {
-//     alert("Hello, 5moku-bot!");
-// }
-// ! END
 
 #[wasm_bindgen]
 pub struct GomokuBot {
-    size: usize,
-    depth: usize,
+    depth: i32,
 }
 
 #[wasm_bindgen]
 impl GomokuBot {
     #[wasm_bindgen(constructor)]
-    pub fn new(size: usize, depth: usize) -> GomokuBot {
-        GomokuBot { size, depth }
+    pub fn new(depth: i32) -> Self {
+        GomokuBot { depth }
     }
 
-    pub fn best_move(&self, board: &[u8], player: u8) -> Option<usize> {
-        let board_2d = self.convert_to_2d(board);
-        let mut best_score = i32::MIN;
-        let mut best_move = None;
-
-        for x in 0..self.size {
-            for y in 0..self.size {
-                if board_2d[x][y] == 0 {
-                    let mut board_clone = board_2d.clone();
-                    board_clone[x][y] = player;
-                    let score = self.alpha_beta(board_clone, 0, i32::MIN, i32::MAX, false, player);
-                    if score > best_score {
-                        best_score = score;
-                        best_move = Some(x * self.size + y);
-                    }
-                }
-            }
-        }
-
-        best_move
+    #[wasm_bindgen]
+    pub fn best_move(&self, board: Uint8Array, player: u8) -> Box<[i32]> {
+        let board = board.to_vec();
+        let (score, x, y) = self.minimax(&board, self.depth, i32::MIN, i32::MAX, player == 1);
+        Box::new([x as i32, y as i32, score])
     }
 
-    fn alpha_beta(
+    fn minimax(
         &self,
-        board: Vec<Vec<u8>>,
-        depth: usize,
+        board: &Vec<u8>,
+        depth: i32,
         mut alpha: i32,
         mut beta: i32,
-        maximizing: bool,
-        player: u8,
-    ) -> i32 {
-        if self.is_winner(&board, player) {
-            return if maximizing {
-                100 - depth as i32
-            } else {
-                depth as i32 - 100
-            };
-        } else if self.is_draw(&board) || depth >= self.depth {
-            return 0;
+        is_maximizing: bool,
+    ) -> (i32, usize, usize) {
+        if depth == 0 || self.is_game_over(board) {
+            return (self.evaluate_board(board), 0, 0);
         }
 
-        let mut best_score = if maximizing { i32::MIN } else { i32::MAX };
+        let mut best_score = if is_maximizing { i32::MIN } else { i32::MAX };
+        let mut best_move = (0, 0);
 
-        for x in 0..self.size {
-            for y in 0..self.size {
-                if board[x][y] == 0 {
-                    let mut board_clone = board.clone();
-                    board_clone[x][y] = if maximizing { player } else { 3 - player }; // Toggle between player 1 and 2
-                    let score =
-                        self.alpha_beta(board_clone, depth + 1, alpha, beta, !maximizing, player);
+        for y in 0..15 {
+            for x in 0..15 {
+                if board[y * 15 + x] == 0 {
+                    let mut new_board = board.clone();
+                    new_board[y * 15 + x] = if is_maximizing { 1 } else { 2 };
 
-                    if maximizing {
-                        best_score = best_score.max(score);
-                        alpha = alpha.max(score);
+                    let (score, _, _) =
+                        self.minimax(&new_board, depth - 1, alpha, beta, !is_maximizing);
+
+                    if is_maximizing {
+                        if score > best_score {
+                            best_score = score;
+                            best_move = (x, y);
+                        }
+                        alpha = alpha.max(best_score);
                     } else {
-                        best_score = best_score.min(score);
-                        beta = beta.min(score);
+                        if score < best_score {
+                            best_score = score;
+                            best_move = (x, y);
+                        }
+                        beta = beta.min(best_score);
                     }
 
                     if beta <= alpha {
@@ -92,51 +65,122 @@ impl GomokuBot {
             }
         }
 
-        best_score
+        (best_score, best_move.0, best_move.1)
     }
 
-    fn is_winner(&self, board: &Vec<Vec<u8>>, player: u8) -> bool {
-        for x in 0..self.size {
-            for y in 0..self.size {
-                if x <= self.size - 5 {
-                    if (0..5).all(|i| board[x + i][y] == player) {
-                        return true;
-                    }
+    fn is_game_over(&self, board: &Vec<u8>) -> bool {
+        // Check for a win or if the board is full
+        self.check_win(board, 1) || self.check_win(board, 2) || !board.contains(&0)
+    }
+
+    fn check_win(&self, board: &Vec<u8>, player: u8) -> bool {
+        // Check horizontally, vertically, and diagonally for 5 in a row
+        for y in 0..15 {
+            for x in 0..15 {
+                if x + 4 < 15 && (0..5).all(|i| board[(y * 15 + x + i) as usize] == player) {
+                    return true;
                 }
-                if y <= self.size - 5 {
-                    if (0..5).all(|i| board[x][y + i] == player) {
-                        return true;
-                    }
+                if y + 4 < 15 && (0..5).all(|i| board[((y + i) * 15 + x) as usize] == player) {
+                    return true;
                 }
-                if x <= self.size - 5 && y <= self.size - 5 {
-                    if (0..5).all(|i| board[x + i][y + i] == player) {
-                        return true;
-                    }
+                if x + 4 < 15
+                    && y + 4 < 15
+                    && (0..5).all(|i| board[((y + i) * 15 + x + i) as usize] == player)
+                {
+                    return true;
                 }
-                if x >= 4 && y <= self.size - 5 {
-                    if (0..5).all(|i| board[x - i][y + i] == player) {
-                        return true;
-                    }
+                if x >= 4
+                    && y + 4 < 15
+                    && (0..5).all(|i| board[((y + i) * 15 + x - i) as usize] == player)
+                {
+                    return true;
                 }
             }
         }
         false
     }
 
-    fn is_draw(&self, board: &Vec<Vec<u8>>) -> bool {
-        for row in board.iter() {
-            if row.iter().any(|&cell| cell == 0) {
-                return false;
-            }
-        }
-        true
+    fn evaluate_board(&self, board: &Vec<u8>) -> i32 {
+        let player_score = self.evaluate_player(board, 1);
+        let opponent_score = self.evaluate_player(board, 2);
+        player_score - opponent_score
     }
 
-    fn convert_to_2d(&self, board: &[u8]) -> Vec<Vec<u8>> {
-        let mut board_2d = vec![vec![0; self.size]; self.size];
-        for (i, &val) in board.iter().enumerate() {
-            board_2d[i / self.size][i % self.size] = val;
+    fn evaluate_player(&self, board: &Vec<u8>, player: u8) -> i32 {
+        let mut score = 0;
+        let directions = [(1, 0), (0, 1), (1, 1), (1, -1)];
+
+        for y in 0..15 {
+            for x in 0..15 {
+                for &(dx, dy) in &directions {
+                    score += self.evaluate_line(board, x, y, dx, dy, player);
+                }
+            }
         }
-        board_2d
+
+        score
+    }
+
+    fn evaluate_line(
+        &self,
+        board: &Vec<u8>,
+        x: usize,
+        y: usize,
+        dx: i32,
+        dy: i32,
+        player: u8,
+    ) -> i32 {
+        let mut count = 0;
+        let mut open_ends = 0;
+
+        for i in 0..6 {
+            let nx = x as i32 + i * dx;
+            let ny = y as i32 + i * dy;
+
+            if nx < 0 || nx >= 15 || ny < 0 || ny >= 15 {
+                break;
+            }
+
+            let cell = board[(ny * 15 + nx) as usize];
+            if cell == player {
+                count += 1;
+            } else if cell == 0 {
+                open_ends += 1;
+                break;
+            } else {
+                break;
+            }
+        }
+
+        for i in 1..6 {
+            let nx = x as i32 - i * dx;
+            let ny = y as i32 - i * dy;
+
+            if nx < 0 || nx >= 15 || ny < 0 || ny >= 15 {
+                break;
+            }
+
+            let cell = board[(ny * 15 + nx) as usize];
+            if cell == player {
+                count += 1;
+            } else if cell == 0 {
+                open_ends += 1;
+                break;
+            } else {
+                break;
+            }
+        }
+
+        match (count, open_ends) {
+            (5, _) => 1000000, // Win
+            (4, 2) => 100000,  // Open four
+            (4, 1) => 10000,   // Closed four
+            (3, 2) => 1000,    // Open three
+            (3, 1) => 100,     // Closed three
+            (2, 2) => 100,     // Open two
+            (2, 1) => 10,      // Closed two
+            (1, _) => 1,
+            _ => 0,
+        }
     }
 }

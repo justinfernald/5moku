@@ -2,13 +2,16 @@ import { c } from '../../../utils';
 import { CellState, Gomoku, Location } from '../../../models/game';
 import { observer } from 'mobx-react-lite';
 import style from './style.module.css';
+import { BotModel } from '../../../models/BotModel';
 
 export const Grid = observer(
   ({
     game,
+    botModel,
     onCellClick,
   }: {
     game: Gomoku;
+    botModel?: BotModel;
     onCellClick: (location: Location) => void;
   }) => (
     <div className={style.root}>
@@ -19,9 +22,13 @@ export const Grid = observer(
 
             const isLastMove = lastMove?.col === x && lastMove?.row === y;
 
+            // ! Remove later
+            const index = x + y * 15;
+            const isBestMove = botModel?.lastBestMove === index;
+
             return (
               <Cell
-                highlight={isLastMove}
+                highlight={isLastMove || isBestMove}
                 key={x}
                 game={game}
                 location={{ col: x, row: y }}
@@ -51,6 +58,14 @@ export const Cell = observer(
     highlight?: boolean;
   }) => (
     <div
+      // show the index of the cell in the title
+      title={`${location.row}, ${location.col} (${
+        // the index
+        game.board
+          .map((row, y) => row.map((cell, x) => ({ cell, x, y })))
+          .flat()
+          .findIndex(({ x, y }) => x === location.col && y === location.row)
+      })`}
       css={{
         backgroundColor: highlight ? 'rgba(64, 64, 255, 0.3)' : undefined,
       }}

@@ -137,6 +137,11 @@ export class Gomoku {
         this.board[i][j] = CellState.EMPTY;
       }
     }
+
+    // this.board[6][5] = CellState.X;
+    // this.board[7][5] = CellState.X;
+    // this.board[8][5] = CellState.X;
+    // this.board[9][5] = CellState.X;
   }
 
   changeTurn() {
@@ -156,14 +161,16 @@ export class Gomoku {
   }
 
   placeCell(row: number, col: number): boolean {
-    if (this.isGameOver || !this.isEmpty(row, col)) return false;
+    // ! UNCOMMENT THIS
+    // if (this.isGameOver || !this.isEmpty(row, col)) return false;
 
     this.setCell(row, col, playerToCellState(this.getTurn()));
     this.moves.push({ row, col, value: playerToCellState(this.getTurn()) });
     this.winLocations = this.checkWin(row, col, this.getTurn());
     if (this.winLocations !== null) {
-      this.winner = this.getTurn();
-      this.isGameOver = true;
+      // ! UNCOMMENT THIS
+      // this.winner = this.getTurn();
+      // this.isGameOver = true;
     } else if (this.isFull()) {
       this.isGameOver = true;
     }
