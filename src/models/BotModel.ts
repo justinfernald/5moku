@@ -92,15 +92,7 @@ export class BotModel {
 
     const playerType = this.game.turn === Player.X ? CellState.X : CellState.O;
 
-    const flippedType = playerType === CellState.X ? CellState.O : CellState.X;
-
-    const [score, bestMove] = this.bot.minimax(
-      aiBoard,
-      2,
-      Number.MIN_SAFE_INTEGER,
-      Number.MAX_SAFE_INTEGER,
-      playerType,
-    );
+    const [score, bestMove] = this.bot.makeBestMove(aiBoard, playerType);
 
     console.log(`Best move: ${bestMove}, Score: ${score}`);
 
