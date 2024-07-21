@@ -161,16 +161,14 @@ export class Gomoku {
   }
 
   placeCell(row: number, col: number): boolean {
-    // ! UNCOMMENT THIS
-    // if (this.isGameOver || !this.isEmpty(row, col)) return false;
+    if (this.isGameOver || !this.isEmpty(row, col)) return false;
 
     this.setCell(row, col, playerToCellState(this.getTurn()));
     this.moves.push({ row, col, value: playerToCellState(this.getTurn()) });
     this.winLocations = this.checkWin(row, col, this.getTurn());
     if (this.winLocations !== null) {
-      // ! UNCOMMENT THIS
-      // this.winner = this.getTurn();
-      // this.isGameOver = true;
+      this.winner = this.getTurn();
+      this.isGameOver = true;
     } else if (this.isFull()) {
       this.isGameOver = true;
     }

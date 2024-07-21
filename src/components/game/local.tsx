@@ -1,4 +1,4 @@
-import { Gomoku } from '../../models/game';
+import { Gomoku, Player } from '../../models/game';
 import { Grid } from './grid';
 import style from './style.module.css';
 import Modal from 'react-modal';
@@ -26,9 +26,13 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
       () => {
         console.log('board changed');
         setTimeout(() => {
-          console.time('bot move');
-          console.log(botModel.getBestMove());
-          console.timeEnd('bot move');
+          if (game.turn === Player.O) {
+            setTimeout(() => {
+              console.time('bot move');
+              botModel.onPlayerMove();
+              console.timeEnd('bot move');
+            }, 100);
+          }
         }, 100);
       },
     );

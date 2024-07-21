@@ -24,33 +24,30 @@ export class BotModel {
   }
 
   handleAITurn() {
-    // const aiBoard = this.convertBoardForAI(this.game.board);
-    // const playerType = this.game.turn === Player.X ? CellState.X : CellState.O;
-    // const [score, bestMove] = this.bot.minimax(
-    //   aiBoard,
-    //   3,
-    //   Number.MIN_SAFE_INTEGER,
-    //   Number.MAX_SAFE_INTEGER,
-    //   playerType,
-    // );
-    // if (bestMove[0] !== -1 && bestMove[1] !== -1) {
-    //   this.game.placeCell(bestMove[0], bestMove[1]);
-    // }
+    if (!this.bot) {
+      throw new Error('Bot not initialized');
+    }
+
+    const bestMove = this.getBestMove();
+
+    if (bestMove !== undefined) {
+      const row = Math.floor(bestMove / this.game.board.length);
+      const col = bestMove % this.game.board.length;
+
+      this.game.placeCell(row, col);
+    }
   }
 
-  onPlayerMove(row: number, col: number) {
-    if (this.game.placeCell(row, col)) {
-      // Check if game is over after player move
-      if (!this.game.isGameOver) {
-        // AI's turn
-        this.handleAITurn();
-      }
+  onPlayerMove() {
+    if (!this.game.isGameOver) {
+      // AI's turn
+      this.handleAITurn();
     }
   }
 
   getBestMove() {
     if (!this.bot) {
-      return;
+      throw new Error('Bot not initialized');
     }
 
     const aiBoard = this.convertBoardForAI(this.game.board);
@@ -64,6 +61,8 @@ export class BotModel {
     console.log(`Best move: ${bestMove}, Score: ${score}`);
 
     this.lastBestMove = bestMove;
+
+    return bestMove;
   }
 
   evalBoard() {

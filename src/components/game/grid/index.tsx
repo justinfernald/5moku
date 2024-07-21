@@ -23,12 +23,12 @@ export const Grid = observer(
             const isLastMove = lastMove?.col === x && lastMove?.row === y;
 
             // ! Remove later
-            const index = x + y * 15;
-            const isBestMove = botModel?.lastBestMove === index;
+            // const index = x + y * 15;
+            // const isBestMove = botModel?.lastBestMove === index;
 
             return (
               <Cell
-                highlight={isLastMove || isBestMove}
+                highlight={isLastMove /*|| isBestMove*/}
                 key={x}
                 game={game}
                 location={{ col: x, row: y }}
