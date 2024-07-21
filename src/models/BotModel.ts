@@ -1,5 +1,3 @@
-// import init from '../rust/5moku-bot/pkg/gomoku_bot_bg.wasm?init';
-// import { GomokuBot } from '../rust/5moku-bot/pkg/gomoku_bot';
 import { makeAutoObservable } from 'mobx';
 import { AI } from './AiEngine';
 import { CellState, Gomoku, Player } from './game';
@@ -12,38 +10,7 @@ export class BotModel {
 
   constructor(private game: Gomoku) {
     makeAutoObservable(this, {}, { autoBind: true });
-    this.setupBot();
   }
-
-  // async setupBot() {
-  //   this.bot = new GomokuBot(3); // depth of 3
-  // }
-
-  // convertBoardToWasmBoard() {
-  //   const board = this.game.board;
-  //   const size = board.length;
-  //   const wasmBoard = new Uint8Array(size * size);
-  //   for (let i = 0; i < size; i++) {
-  //     for (let j = 0; j < size; j++) {
-  //       wasmBoard[i * size + j] = board[i][j];
-  //     }
-  //   }
-  //   return wasmBoard;
-  // }
-
-  // getBestMove() {
-  //   if (!this.bot) {
-  //     return;
-  //   }
-  //   const wasmBoard = this.convertBoardToWasmBoard();
-  //   const playerTurn = this.game.getTurn() === Player.X ? 1 : 2;
-  //   const result = this.bot.best_move(wasmBoard, playerTurn);
-  //   const [bestMove, score] = result;
-  //   console.log(`Best move: ${bestMove}, Score: ${score}`);
-  //   return bestMove;
-  // }
-
-  async setupBot() {}
 
   convertBoardForAI(board: CellState[][]): Uint8Array {
     const size = board.length;
@@ -112,11 +79,13 @@ export class BotModel {
 
     const playerType = this.game.turn === Player.X ? CellState.X : CellState.O;
 
-    const flippedType = playerType === CellState.X ? CellState.O : CellState.X;
+    const opponentType = playerType === CellState.X ? CellState.O : CellState.X;
 
-    const score = this.bot.evaluateBoard(aiBoard, playerType);
+    console.log('getting player score');
+    const score = this.bot.evaluateBoard(aiBoard, playerType, true);
 
-    const flippedScore = this.bot.evaluateBoard(aiBoard, flippedType);
+    console.log('getting opponent score');
+    const flippedScore = this.bot.evaluateBoard(aiBoard, opponentType, true);
 
     console.log(`Score: ${score}`);
     console.log(`Flipped Score: ${flippedScore}`);

@@ -20,8 +20,8 @@ const directions = [
   'DOWN',
   // 'LEFT',
   'RIGHT',
-  // 'UP_LEFT',
-  // 'UP_RIGHT',
+  // 'UP_LEFT', // currently broken
+  // 'UP_RIGHT', // currently broken
   'DOWN_LEFT',
   'DOWN_RIGHT',
 ] as const;
@@ -41,13 +41,13 @@ enum ThreatType {
 const ThreatTypeScores = {
   [ThreatType.DOUBLE_OPEN_ONE]: 10,
   [ThreatType.SINGLE_OPEN_ONE]: 1,
-  [ThreatType.DOUBLE_OPEN_TWO]: 2000,
+  [ThreatType.DOUBLE_OPEN_TWO]: 50000,
   [ThreatType.SINGLE_OPEN_TWO]: 100,
-  [ThreatType.DOUBLE_OPEN_THREE]: 100000,
+  [ThreatType.DOUBLE_OPEN_THREE]: 500000,
   [ThreatType.SINGLE_OPEN_THREE]: 10000,
   [ThreatType.DOUBLE_OPEN_FOUR]: 1000000,
   [ThreatType.SINGLE_OPEN_FOUR]: 500000,
-  [ThreatType.FIVE]: 10000000,
+  [ThreatType.FIVE]: Infinity,
 } as const;
 
 interface LineThreat {
@@ -137,47 +137,84 @@ export class AI {
   lineAnalysis(line: Line, type: CellState): LineThreat[] {
     const threats: LineThreat[] = [];
     const opponent = type === CellState.X ? CellState.O : CellState.X;
-    const lineElements = line.elements.map((el) => el.type);
+    const lineElements = [opponent, ...line.elements.map((el) => el.type), opponent];
     const usedIndices = new Set<number>();
 
+    const X = type;
+    const B = opponent;
+    const _ = CellState.EMPTY;
+
     const patterns = [
-      { pattern: [type, type, type, type, type], threat: ThreatType.FIVE },
+      { pattern: [X, X, X, X, X], threat: ThreatType.FIVE },
       {
-        pattern: [CellState.EMPTY, type, type, type, type, CellState.EMPTY],
+        pattern: [_, X, X, X, X, _],
         threat: ThreatType.DOUBLE_OPEN_FOUR,
       },
       {
-        pattern: [opponent, type, type, type, type, CellState.EMPTY],
+        pattern: [B, X, X, X, X, _],
         threat: ThreatType.SINGLE_OPEN_FOUR,
       },
       {
-        pattern: [CellState.EMPTY, type, type, type, type, opponent],
+        pattern: [_, X, X, X, X, B],
         threat: ThreatType.SINGLE_OPEN_FOUR,
       },
       {
-        pattern: [CellState.EMPTY, type, type, type, CellState.EMPTY, CellState.EMPTY],
+        pattern: [_, X, X, X, _, _],
         threat: ThreatType.DOUBLE_OPEN_THREE,
       },
       {
-        pattern: [CellState.EMPTY, CellState.EMPTY, type, type, type, CellState.EMPTY],
+        pattern: [_, _, X, X, X, _],
         threat: ThreatType.DOUBLE_OPEN_THREE,
       },
       {
-        pattern: [opponent, type, type, type, CellState.EMPTY],
+        pattern: [_, X, X, _, X, _],
+        threat: ThreatType.DOUBLE_OPEN_THREE,
+      },
+      {
+        pattern: [_, X, _, X, X, _],
+        threat: ThreatType.DOUBLE_OPEN_THREE,
+      },
+      {
+        pattern: [_, X, _, X, _, X, _],
+        threat: ThreatType.DOUBLE_OPEN_THREE,
+      },
+      {
+        pattern: [B, X, X, X, _, _],
         threat: ThreatType.SINGLE_OPEN_THREE,
       },
       {
-        pattern: [CellState.EMPTY, type, type, type, opponent],
+        pattern: [_, _, X, X, X, B],
         threat: ThreatType.SINGLE_OPEN_THREE,
       },
       {
-        pattern: [CellState.EMPTY, type, type, CellState.EMPTY],
+        pattern: [_, X, X, _, _],
         threat: ThreatType.DOUBLE_OPEN_TWO,
       },
       {
-        pattern: [CellState.EMPTY, type, CellState.EMPTY, type, CellState.EMPTY],
+        pattern: [_, _, X, X, _],
         threat: ThreatType.DOUBLE_OPEN_TWO,
       },
+      {
+        pattern: [_, X, _, X, _],
+        threat: ThreatType.DOUBLE_OPEN_TWO,
+      },
+      {
+        pattern: [B, X, X, _, _, _],
+        threat: ThreatType.SINGLE_OPEN_TWO,
+      },
+      {
+        pattern: [_, _, _, X, X, B],
+        threat: ThreatType.SINGLE_OPEN_TWO,
+      },
+      {
+        pattern: [B, _, X, X, _, _],
+        threat: ThreatType.SINGLE_OPEN_TWO,
+      },
+      {
+        pattern: [_, _, X, X, _, B],
+        threat: ThreatType.SINGLE_OPEN_TWO,
+      },
+      // more patterns are required
     ];
 
     for (let i = 0; i < lineElements.length; i++) {
@@ -338,7 +375,7 @@ export class AI {
     console.log(boardString);
   }
 
-  evaluateBoard(board: Board, type: CellState): number {
+  evaluateBoard(board: Board, type: CellState, log = false): number {
     let score = 0;
 
     for (const direction of directions) {
@@ -350,7 +387,7 @@ export class AI {
           const threatScore = ThreatTypeScores[threat.type];
           score += threatScore;
 
-          if (threatScore >= 1000) {
+          if (log && threatScore >= 1000) {
             console.log(threat);
           }
         }
@@ -389,91 +426,112 @@ export class AI {
     return type === CellState.X ? CellState.O : CellState.X;
   }
 
+  isWinner(board: Board, type: CellState): boolean {
+    for (const direction of directions) {
+      const lines = this.getLines(board, direction);
+      for (const line of lines) {
+        const threats = this.lineAnalysis(line, type);
+        if (threats.some((threat) => threat.type === ThreatType.FIVE)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  hasWinner(board: Board): CellState | null {
+    if (this.isWinner(board, CellState.X)) {
+      return CellState.X;
+    } else if (this.isWinner(board, CellState.O)) {
+      return CellState.O;
+    } else {
+      return null;
+    }
+  }
+
   minimax(
     board: Board,
     depth: number,
     alpha: number,
     beta: number,
-    turn: CellState,
+    turn: CellState.X | CellState.O,
     maxDepth: number,
-    madeMoves: number[] = [],
-  ): [score: number, moveIndex: number] {
-    const opponent = this.getOpponent(turn);
+  ): [number, number] {
+    // console.log('Depth:', depth);
+    // this.printBoard(board);
 
-    const currentScore = this.evaluateBoard(board, turn);
-    const opponentScore = this.evaluateBoard(board, opponent);
+    const winner = this.hasWinner(board);
 
-    if (depth === 0) {
-      return [currentScore - opponentScore, -1];
+    if (winner !== null || depth === maxDepth) {
+      return [
+        this.evaluateBoard(board, CellState.X) - this.evaluateBoard(board, CellState.O),
+        -1,
+      ];
     }
 
-    const emptyCells = this.findEmptyAdjacentCells(board);
-
-    if (emptyCells.length === 0) {
-      return [0, -1];
-    }
-
-    let bestScore =
-      turn === CellState.X ? Number.MIN_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+    const moves = this.findEmptyAdjacentCells(board);
     let bestMove = -1;
 
-    // const moves = emptyCells;
-    const moves = this.orderMoves(board, emptyCells, turn);
-    // const move = this.shuffleArray(emptyCells)
-
-    for (const moveIndex of moves) {
-      const newBoard = this.makeBoardCopy(board);
-      newBoard[moveIndex] = turn;
-
-      const [score, _] = this.minimax(
-        newBoard,
-        depth - 1,
-        alpha,
-        beta,
-        opponent,
-        maxDepth,
-        [...madeMoves, moveIndex],
-      );
-
-      if (turn === CellState.X) {
-        if (score > bestScore) {
-          bestScore = score;
-          bestMove = moveIndex;
+    if (turn === CellState.X) {
+      // Maximizing player
+      let maxEval = -Infinity;
+      for (let i = 0; i < moves.length; i++) {
+        const newBoard = this.makeBoardCopy(board);
+        newBoard[moves[i]] = CellState.X;
+        const [evalScore] = this.minimax(
+          newBoard,
+          depth + 1,
+          alpha,
+          beta,
+          CellState.O,
+          maxDepth,
+        );
+        if (evalScore > maxEval) {
+          maxEval = evalScore;
+          bestMove = moves[i];
         }
-        alpha = Math.max(alpha, score);
-      } else {
-        if (score < bestScore) {
-          bestScore = score;
-          bestMove = moveIndex;
+        alpha = Math.max(alpha, evalScore);
+        if (beta <= alpha) {
+          break;
         }
-        beta = Math.min(beta, score);
       }
-
-      if (beta <= alpha) {
-        break;
+      return [maxEval, bestMove];
+    } else {
+      // Minimizing player
+      let minEval = Infinity;
+      for (let i = 0; i < moves.length; i++) {
+        const newBoard = this.makeBoardCopy(board);
+        newBoard[moves[i]] = CellState.O;
+        const [evalScore] = this.minimax(
+          newBoard,
+          depth + 1,
+          alpha,
+          beta,
+          CellState.X,
+          maxDepth,
+        );
+        if (evalScore < minEval) {
+          minEval = evalScore;
+          bestMove = moves[i];
+        }
+        beta = Math.min(beta, evalScore);
+        if (beta <= alpha) {
+          break;
+        }
       }
+      return [minEval, bestMove];
     }
-
-    return [bestScore, bestMove];
   }
 
-  checkImmediateWinOrBlock(board: Board, turn: CellState): number {
-    const emptyCells = this.findEmptyAdjacentCells(board);
-    for (const moveIndex of emptyCells) {
-      const newBoard = this.makeBoardCopy(board);
-      newBoard[moveIndex] = turn;
-      if (this.evaluateBoard(newBoard, turn) >= 10000000) {
-        return moveIndex;
-      }
-    }
-    return -1;
-  }
-
-  makeBestMove(board: Board, type: CellState): [score: number, moveIndex: number] {
-    const maxDepth = 1;
+  makeBestMove(
+    board: Board,
+    type: CellState.X | CellState.O,
+  ): [score: number, moveIndex: number] {
+    const maxDepth = 3;
     const [score, bestMove] = this.minimax(
       board,
-      maxDepth,
+      0,
       Number.MIN_SAFE_INTEGER,
       Number.MAX_SAFE_INTEGER,
       type,
