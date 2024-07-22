@@ -4,6 +4,7 @@ export enum PlayMode {
   UNSET,
   LOCAL,
   REMOTE,
+  COMPUTER,
 }
 
 export enum Player {
@@ -137,6 +138,11 @@ export class Gomoku {
         this.board[i][j] = CellState.EMPTY;
       }
     }
+
+    // this.board[6][5] = CellState.X;
+    // this.board[7][5] = CellState.X;
+    // this.board[8][5] = CellState.X;
+    // this.board[9][5] = CellState.X;
   }
 
   changeTurn() {

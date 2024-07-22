@@ -1,4 +1,5 @@
 import { VitePWA } from 'vite-plugin-pwa';
+import wasm from 'vite-plugin-wasm';
 
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -15,6 +16,7 @@ export default defineConfig({
         plugins: ['@emotion/babel-plugin'],
       },
     }),
+    wasm(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],

@@ -51,6 +51,8 @@ export const Cell = observer(
     highlight?: boolean;
   }) => (
     <div
+      // show the index of the cell in the title
+      title={`${location.row + 1}, ${location.col + 1}`}
       css={{
         backgroundColor: highlight ? 'rgba(64, 64, 255, 0.3)' : undefined,
       }}
