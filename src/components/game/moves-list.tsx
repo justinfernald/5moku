@@ -4,6 +4,7 @@ import { FlexColumn, FlexRow } from '../base/Flex';
 import { borderRadius, dropShadow, flex1, padding } from '../../styles';
 import { Button } from '../base/Button';
 import { Spacing } from '../base/Spacing';
+import { useEffect, useRef } from 'react';
 
 export interface MovesListProps {
   game: Gomoku;
@@ -13,7 +14,7 @@ export interface MovesListProps {
 }
 
 export const MovesList = observer((props: MovesListProps) => {
-  const { className, game, remote, onTakeBack: onTakeback } = props;
+  const { className, game, remote, onTakeBack } = props;
 
   return (
     <FlexColumn
@@ -25,11 +26,16 @@ export const MovesList = observer((props: MovesListProps) => {
         css={[flex1, padding('md'), { overflow: 'auto', scrollbarWidth: 'none' }]}
       >
         {game.moves.map((move, index) => (
-          <Move key={index} cell={move} turn={index + 1} />
+          <Move
+            key={index}
+            cell={move}
+            turn={index + 1}
+            autoScrollTo={index + 1 === game.moves.length}
+          />
         ))}
       </FlexColumn>
       <Spacing mainAxis={5} />
-      <Button onClick={onTakeback} disabled={game.moves.length === 0}>
+      <Button onClick={onTakeBack} disabled={game.moves.length === 0}>
         {remote ? 'Request Take-back' : 'Undo'}
       </Button>
       <Spacing mainAxis={5} />
@@ -40,20 +46,31 @@ export const MovesList = observer((props: MovesListProps) => {
 export interface MoveProps {
   cell: Cell;
   turn: number;
+  autoScrollTo?: boolean;
 }
 
 export const Move = observer((props: MoveProps) => {
-  const { cell, turn } = props;
+  const { cell, turn, autoScrollTo } = props;
+
+  const divRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (autoScrollTo && divRef.current) {
+      divRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [autoScrollTo]);
 
   const wasX = cell.value === CellState.X;
 
   return (
-    <FlexRow>
-      <div css={{ width: 35 }}>{turn}</div>
-      <div css={{ width: 37 }}>{wasX ? 'X' : 'O'}</div>
-      <div css={{ width: 24 }}>{cell.col + 1}</div>
+    <div ref={divRef}>
+      <FlexRow>
+        <div css={{ width: 35 }}>{turn}</div>
+        <div css={{ width: 37 }}>{wasX ? 'X' : 'O'}</div>
+        <div css={{ width: 24 }}>{cell.col + 1}</div>
 
-      <div css={{ width: 19 }}>{cell.row + 1}</div>
-    </FlexRow>
+        <div css={{ width: 19 }}>{cell.row + 1}</div>
+      </FlexRow>
+    </div>
   );
 });
