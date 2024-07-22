@@ -3,12 +3,11 @@ import { AI } from './AiEngine';
 import { CellState, Gomoku, Player } from './game';
 
 export class BotModel {
-  // bot?: GomokuBot;
   bot: AI = new AI();
 
   lastBestMove?: number;
 
-  constructor(private game: Gomoku) {
+  constructor(private game: Gomoku, public aiPlayer = Player.O) {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
@@ -30,7 +29,7 @@ export class BotModel {
 
     const bestMove = this.getBestMove();
 
-    if (bestMove !== undefined) {
+    if (bestMove !== -1) {
       const row = Math.floor(bestMove / this.game.board.length);
       const col = bestMove % this.game.board.length;
 
@@ -38,10 +37,11 @@ export class BotModel {
     }
   }
 
-  onPlayerMove() {
-    if (!this.game.isGameOver) {
-      // AI's turn
+  triggerPlayerMove() {
+    if (!this.game.isGameOver && this.game.turn === this.aiPlayer) {
+      console.time('bot move');
       this.handleAITurn();
+      console.timeEnd('bot move');
     }
   }
 
@@ -63,31 +63,5 @@ export class BotModel {
     this.lastBestMove = bestMove;
 
     return bestMove;
-  }
-
-  evalBoard() {
-    if (!this.bot) {
-      return;
-    }
-
-    const aiBoard = this.convertBoardForAI(this.game.board);
-
-    this.bot.printBoard(aiBoard);
-
-    console.log(aiBoard);
-
-    const playerType = this.game.turn === Player.X ? CellState.X : CellState.O;
-
-    const opponentType = playerType === CellState.X ? CellState.O : CellState.X;
-
-    console.log('getting player score');
-    const score = this.bot.evaluateBoard(aiBoard, playerType, true);
-
-    console.log('getting opponent score');
-    const flippedScore = this.bot.evaluateBoard(aiBoard, opponentType, true);
-
-    console.log(`Score: ${score}`);
-    console.log(`Flipped Score: ${flippedScore}`);
-    console.log(`Difference: ${score - flippedScore}`);
   }
 }

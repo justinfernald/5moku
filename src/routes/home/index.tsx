@@ -9,6 +9,7 @@ import { RemoteGame } from '../../components/game/remote';
 import { LocalGame } from '../../components/game/local';
 import { ConnectionHandler } from '../../utils/connection-handler';
 import { useEffect, useState } from 'react';
+import { ComputerGame } from '../../components/game/computer';
 
 export const Home = () => {
   useEffect(() => {
@@ -73,6 +74,9 @@ export const Home = () => {
           <div className={style.button} onClick={() => setMode(PlayMode.LOCAL)}>
             Local
           </div>
+          <div className={style.button} onClick={() => setMode(PlayMode.COMPUTER)}>
+            Computer
+          </div>
           <div className={style.button} onClick={() => setMode(PlayMode.REMOTE)}>
             Online
           </div>
@@ -106,6 +110,8 @@ export const Home = () => {
       </Modal>
       {mode !== PlayMode.UNSET && mode === PlayMode.LOCAL ? (
         <LocalGame boardSize={boardSize} />
+      ) : mode === PlayMode.COMPUTER ? (
+        <ComputerGame boardSize={boardSize} />
       ) : (
         peer &&
         connectionHandler && (

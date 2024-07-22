@@ -1,4 +1,4 @@
-import { Gomoku } from '../../models/game';
+import { Gomoku, Player } from '../../models/game';
 import { Grid } from './grid';
 import style from './style.module.css';
 import Modal from 'react-modal';
@@ -7,13 +7,34 @@ import { useEffect, useState } from 'react';
 import { MovesList } from './moves-list';
 import { Spacing } from '../base/Spacing';
 import { absolute, flex1 } from '../../styles';
+import { BotModel } from '../../models/BotModel';
+import { reaction, toJS } from 'mobx';
+import { sleep } from '../../utils';
 
-export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) => {
+export const ComputerGame = observer(({ boardSize = 15 }: { boardSize: number }) => {
   useEffect(() => {
     Modal.setAppElement('#app');
   }, []);
 
   const [game] = useState(() => new Gomoku({ width: boardSize, height: boardSize }));
+  const [botPlayer] = useState(() => (Math.random() > 0.5 ? Player.X : Player.O));
+  const player = botPlayer === Player.X ? Player.O : Player.X;
+  const [botModel] = useState(() => new BotModel(game, botPlayer));
+
+  useEffect(() => {
+    const destroy = reaction(
+      () => toJS(game.board),
+      async () => {
+        await sleep(0);
+        if (game.turn === botPlayer) {
+          botModel.triggerPlayerMove();
+        }
+      },
+      { fireImmediately: true },
+    );
+
+    return destroy;
+  }, [botModel, game]);
 
   let isGameOver = game.isGameOver;
 
@@ -21,7 +42,9 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
     <div css={[absolute(20, 20, 20, 20)]} className={style.root}>
       <Grid
         game={game}
-        onCellClick={(location) => game.placeCell(location.row, location.col)}
+        onCellClick={(location) => {
+          if (game.turn === player) game.placeCell(location.row, location.col);
+        }}
       />
       <Spacing />
       <MovesList css={flex1} game={game} remote={false} onTakeBack={game.undoLastMove} />

@@ -366,6 +366,10 @@ export class AI {
       ...this.findTypeCells(board, CellState.O),
     ];
 
+    if (filledCells.length === 0) {
+      return [Math.floor((15 * 15) / 2)];
+    }
+
     const emptyAdjacentCells: Set<number> = new Set();
 
     for (const index of filledCells) {

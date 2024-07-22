@@ -4,6 +4,7 @@ export enum PlayMode {
   UNSET,
   LOCAL,
   REMOTE,
+  COMPUTER,
 }
 
 export enum Player {

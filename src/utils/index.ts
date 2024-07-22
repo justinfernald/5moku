@@ -19,3 +19,7 @@ export function co(classObject: { [key: string]: boolean }): string {
     .filter((key) => classObject[key])
     .join(' ');
 }
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
