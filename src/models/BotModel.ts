@@ -60,6 +60,7 @@ export class BotModel {
     if (!this.game.isGameOver && this.game.turn === this.aiPlayer) {
       console.time('bot move');
       this.handleAITurn();
+      console.timeEnd('bot move');
     }
   }
 
