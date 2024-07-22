@@ -10,6 +10,9 @@ import { LocalGame } from '../../components/game/local';
 import { ConnectionHandler } from '../../utils/connection-handler';
 import { useEffect, useState } from 'react';
 import { ComputerGame } from '../../components/game/computer';
+import { Button } from '../../components/base/Button';
+import { FlexRow } from '../../components/base/Flex';
+import { Spacing } from '../../components/base/Spacing';
 
 export const Home = () => {
   useEffect(() => {
@@ -70,17 +73,29 @@ export const Home = () => {
             <option value={19}>19x19</option>
           </select>
         </div>
-        <div className={style.buttonWrapper}>
-          <div className={style.button} onClick={() => setMode(PlayMode.LOCAL)}>
+        <Spacing mainAxis={5} />
+        <FlexRow gap={5}>
+          <Button title="1v1 over the table" onClick={() => setMode(PlayMode.LOCAL)}>
             Local
-          </div>
-          <div className={style.button} onClick={() => setMode(PlayMode.COMPUTER)}>
+          </Button>
+          <Button
+            title={
+              boardSize !== 15
+                ? 'Bot Mode only allowed on 15x15 (Will change soon)'
+                : 'Face a bot'
+            }
+            disabled={boardSize !== 15}
+            onClick={() => setMode(PlayMode.COMPUTER)}
+          >
             Computer
-          </div>
-          <div className={style.button} onClick={() => setMode(PlayMode.REMOTE)}>
+          </Button>
+          <Button
+            title="Play a friend over Peer to Peer"
+            onClick={() => setMode(PlayMode.REMOTE)}
+          >
             Online
-          </div>
-        </div>
+          </Button>
+        </FlexRow>
       </Modal>
       <Modal
         style={{
