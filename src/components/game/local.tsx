@@ -18,22 +18,15 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
   const [game] = useState(() => new Gomoku({ width: boardSize, height: boardSize }));
   const [botModel] = useState(() => new BotModel(game));
 
-  console.log('ahhh');
-
   useEffect(() => {
     const destroy = reaction(
       () => toJS(game.board),
       () => {
-        console.log('board changed');
-        setTimeout(() => {
-          if (game.turn === Player.O) {
-            setTimeout(() => {
-              console.time('bot move');
-              botModel.onPlayerMove();
-              console.timeEnd('bot move');
-            }, 100);
-          }
-        }, 100);
+        if (game.turn === Player.O) {
+          console.time('bot move');
+          botModel.onPlayerMove();
+          console.timeEnd('bot move');
+        }
       },
     );
 
@@ -47,7 +40,6 @@ export const LocalGame = observer(({ boardSize = 15 }: { boardSize: number }) =>
       <button onClick={botModel.evalBoard}>Eval</button>
       <Grid
         game={game}
-        botModel={botModel}
         onCellClick={(location) => game.placeCell(location.row, location.col)}
       />
       <Spacing />
