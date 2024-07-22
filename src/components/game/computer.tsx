@@ -10,6 +10,7 @@ import { absolute, flex1 } from '../../styles';
 import { BotModel } from '../../models/BotModel';
 import { reaction, toJS } from 'mobx';
 import { sleep } from '../../utils';
+import { ProgressBar } from '../base/ProgressBar';
 
 export const ComputerGame = observer(({ boardSize = 15 }: { boardSize: number }) => {
   useEffect(() => {
@@ -40,6 +41,13 @@ export const ComputerGame = observer(({ boardSize = 15 }: { boardSize: number })
 
   return (
     <div css={[absolute(20, 20, 20, 20)]} className={style.root}>
+      <div css={{ width: 'min(500px, calc(95vmin - 10px))' }}>
+        <ProgressBar
+          progress={botModel.progress?.completed ?? 0}
+          total={botModel.progress?.total ?? 0}
+        />
+      </div>
+      <Spacing />
       <Grid
         game={game}
         onCellClick={(location) => {

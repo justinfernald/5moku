@@ -52,13 +52,7 @@ export const Cell = observer(
   }) => (
     <div
       // show the index of the cell in the title
-      title={`${location.row}, ${location.col} (${
-        // the index
-        game.board
-          .map((row, y) => row.map((cell, x) => ({ cell, x, y })))
-          .flat()
-          .findIndex(({ x, y }) => x === location.col && y === location.row)
-      })`}
+      title={`${location.row + 1}, ${location.col + 1}`}
       css={{
         backgroundColor: highlight ? 'rgba(64, 64, 255, 0.3)' : undefined,
       }}

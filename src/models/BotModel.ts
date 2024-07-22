@@ -1,15 +1,30 @@
 import { makeAutoObservable } from 'mobx';
-import { AI } from './AiEngine';
 import { CellState, Gomoku, Player } from './game';
 
-export class BotModel {
-  bot: AI = new AI();
+import AiWorkerPath from '../workers/aiWorker.ts?worker&url';
 
+export class BotModel {
+  private worker: Worker;
   lastBestMove?: number;
+  progress: { completed: number; total: number; turn: CellState } | null = null;
 
   constructor(private game: Gomoku, public aiPlayer = Player.O) {
     makeAutoObservable(this, {}, { autoBind: true });
+    this.worker = new Worker(AiWorkerPath, {
+      type: 'module',
+    });
+    this.worker.onmessage = this.handleWorkerMessage;
   }
+
+  handleWorkerMessage = (event: MessageEvent) => {
+    const { type, ...data } = event.data;
+    if (type === 'progress') {
+      this.progress = data;
+    } else if (type === 'result') {
+      this.lastBestMove = data.bestMove;
+      this.makeMove(data.bestMove);
+    }
+  };
 
   convertBoardForAI(board: CellState[][]): Uint8Array {
     const size = board.length;
@@ -23,16 +38,20 @@ export class BotModel {
   }
 
   handleAITurn() {
-    if (!this.bot) {
-      throw new Error('Bot not initialized');
-    }
+    const aiBoard = this.convertBoardForAI(this.game.board);
+    const playerType = this.game.turn === Player.X ? CellState.X : CellState.O;
 
-    const bestMove = this.getBestMove();
+    this.worker.postMessage({
+      board: aiBoard,
+      playerType,
+      maxDepth: 3, // You can adjust this as needed
+    });
+  }
 
+  makeMove(bestMove: number) {
     if (bestMove !== -1) {
       const row = Math.floor(bestMove / this.game.board.length);
       const col = bestMove % this.game.board.length;
-
       this.game.placeCell(row, col);
     }
   }
@@ -41,27 +60,10 @@ export class BotModel {
     if (!this.game.isGameOver && this.game.turn === this.aiPlayer) {
       console.time('bot move');
       this.handleAITurn();
-      console.timeEnd('bot move');
     }
   }
 
-  getBestMove() {
-    if (!this.bot) {
-      throw new Error('Bot not initialized');
-    }
-
-    const aiBoard = this.convertBoardForAI(this.game.board);
-
-    this.bot.printBoard(aiBoard);
-
-    const playerType = this.game.turn === Player.X ? CellState.X : CellState.O;
-
-    const [score, bestMove] = this.bot.makeBestMove(aiBoard, playerType);
-
-    console.log(`Best move: ${bestMove}, Score: ${score}`);
-
-    this.lastBestMove = bestMove;
-
-    return bestMove;
+  dispose() {
+    this.worker.terminate();
   }
 }
