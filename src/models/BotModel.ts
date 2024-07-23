@@ -23,6 +23,7 @@ export class BotModel {
     } else if (type === 'result') {
       this.lastBestMove = data.bestMove;
       this.makeMove(data.bestMove);
+      console.timeEnd('bot move');
     }
   };
 
@@ -60,7 +61,6 @@ export class BotModel {
     if (!this.game.isGameOver && this.game.turn === this.aiPlayer) {
       console.time('bot move');
       this.handleAITurn();
-      console.timeEnd('bot move');
     }
   }
 
